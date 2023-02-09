@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuzi.server.mapper.UserMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.yuzi.server.pojo.User">
+        <id column="id" property="id"/>
+        <result column="enabled" property="enabled"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="userFace" property="userFace"/>
+        <result column="name" property="name"/>
+        <result column="eid" property="eid"/>
+    </resultMap>
+
+    <resultMap id="UserWithRole" type="com.yuzi.server.pojo.User" extends="BaseResultMap">
+        <collection property="roles" ofType="com.yuzi.server.pojo.Role">
+            <id column="rid" property="id"/>
+            <result column="rname" property="name"/>
+            <result column="rnameZh" property="nameZh"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="UserWithEmployee" type="com.yuzi.server.pojo.User" extends="UserWithRole">
+        <collection property="employee" ofType="com.yuzi.server.pojo.Employee">
+            <id property="id" column="eid"/>
+            <result property="workID" column="eworkID"/>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        , enabled, username, password, userFace, eid, name
+    </sql>
+
+    <!--    获取所有操作员-->
+    <select id="getAllUsers" resultMap="UserWithRole">
+        SELECT u.*,
+        r.id AS rid,
+        r.`name` AS rname,
+        r.nameZh AS rnameZh
+        FROM t_user AS u
+        LEFT JOIN t_user_role AS ur ON ur.uid = u.id
+        LEFT JOIN t_role AS r ON ur.rid = r.id
+        WHERE u.id != #{id}
+        <if test="null != keywords and '' != keywords">
+            AND u.`username` LIKE CONCAT( '%', #{keywords}, '%' )
+        </if>
+        ORDER BY
+        u.id
+
+    </select>
+
+    <!--    获取一个操作员-->
+    <select id="getUser" resultMap="UserWithRole">
+        SELECT u.*,
+        r.id AS rid,
+        r.`name` AS rname,
+        r.nameZh AS rnameZh
+        FROM t_user AS u
+        LEFT JOIN t_user_role AS ur ON ur.uid = u.id
+        LEFT JOIN t_role AS r ON ur.rid = r.id
+        WHERE u.id = #{uid}
+    </select>
+
+<!--    获取携带员工信息的用户账号列表-->
+    <select id="getUserListWithEmp" resultMap="UserWithEmployee">
+<!--        SELECT-->
+<!--            u.id,-->
+<!--            u.username,-->
+<!--            u.`name`,-->
+<!--            u.`password`,-->
+<!--            u.userFace,-->
+<!--            u.enabled,-->
+<!--            r.id AS rid,-->
+<!--            r.`name` AS rname,-->
+<!--            r.nameZh AS rnameZh,-->
+<!--            e.id AS eid,-->
+<!--            e.workID AS eworkID-->
+<!--        FROM-->
+<!--            t_user AS u-->
+<!--                LEFT JOIN t_user_role AS ur ON ur.uid = u.id-->
+<!--                LEFT JOIN t_role AS r ON ur.rid = r.id-->
+<!--                LEFT JOIN t_employee AS e ON u.eid = e.id-->
+<!--        <if test="null != workID and '' != workID ">-->
+<!--            WHERE e.workID LIKE CONCAT('%',#{workID},'%')-->
+<!--        </if>-->
+<!--        LIMIT #{offset},#{size}-->
+
+        SELECT
+        u.id,
+        u.username,
+        u.`name`,
+        u.`password`,
+        u.userFace,
+        u.enabled,
+        r.id AS rid,
+        r.`name` AS rname,
+        r.nameZh AS rnameZh,
+        e.id AS eid,
+        e.workID AS eworkID
+        FROM
+        ( SELECT * FROM `t_user` LIMIT #{offset},#{size} ) AS u
+        LEFT JOIN t_user_role AS ur ON ur.uid = u.id
+        LEFT JOIN t_role AS r ON ur.rid = r.id
+        LEFT JOIN t_employee AS e ON u.eid = e.id
+        <if test="null != workID and '' != workID ">
+            WHERE e.workID LIKE CONCAT('%',#{workID},'%')
+        </if>
+    </select>
+</mapper>

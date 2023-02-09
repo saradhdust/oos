@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuzi.server.mapper.LeaveMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.yuzi.server.pojo.Leave">
+        <id column="id" property="id"/>
+        <result column="applierWorkID" property="applierWorkID"/>
+        <result column="auditorWorkID" property="auditorWorkID"/>
+        <result column="reason" property="reason"/>
+        <result column="createDate" property="createDate"/>
+        <result column="beginDate" property="beginDate"/>
+        <result column="endDate" property="endDate"/>
+        <result column="state" property="state"/>
+        <result column="auditResult" property="auditResult"/>
+    </resultMap>
+
+    <resultMap id="LeaveResultMap" type="com.yuzi.server.pojo.Leave" extends="BaseResultMap">
+        <collection property="applier" ofType="com.yuzi.server.pojo.Employee">
+            <result column="appname" property="name"/>
+        </collection>
+        <collection property="auditor" ofType="com.yuzi.server.pojo.Employee">
+            <result column="audname" property="name"/>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        ,applierWorkID,auditorWorkID,reason,createDate,beginDate,endDate,state,auditResult
+    </sql>
+
+    <select id="getLeaveList" resultMap="LeaveResultMap">
+        SELECT
+        l.*,
+        appemp.NAME AS appname,
+        audemp.NAME AS audname
+        FROM
+        `t_leave` AS l,
+        `t_employee` AS appemp,
+        `t_employee` AS audemp
+        WHERE
+        l.applierWorkID = appemp.workID
+        AND l.auditorWorkID = audemp.workID
+        AND l.applierWorkID = #{workID}
+        <if test=" null!= state and '' != state">
+            AND l.state = #{state}
+        </if>
+        ORDER BY l.id DESC
+    </select>
+
+    <select id="getAuditorLeave" resultMap="LeaveResultMap">
+        SELECT
+        l.*,
+        appemp.NAME AS appname,
+        audemp.NAME AS audname
+        FROM
+        `t_leave` AS l,
+        `t_employee` AS appemp,
+        `t_employee` AS audemp
+        WHERE
+        l.applierWorkID = appemp.workID
+        AND l.auditorWorkID = audemp.workID
+        AND l.auditorWorkID= #{workID}
+        <if test=" null!= state and '' != state">
+            AND l.state = #{state}
+        </if>
+        ORDER BY l.id DESC
+    </select>
+</mapper>

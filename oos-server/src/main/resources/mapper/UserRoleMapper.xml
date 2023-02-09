@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuzi.server.mapper.UserRoleMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.yuzi.server.pojo.UserRole">
+        <id column="id" property="id" />
+        <result column="uid" property="uid" />
+        <result column="rid" property="rid" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, uid, rid
+    </sql>
+
+    <!--   添加操作员角色 -->
+    <insert id="addUserRoles">
+        insert into t_user_role (uid,rid)
+        values
+        <foreach collection="rids" item="rid" separator=",">
+            (#{uid},#{rid})
+        </foreach>
+    </insert>
+</mapper>

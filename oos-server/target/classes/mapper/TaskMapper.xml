@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuzi.server.mapper.TaskMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.yuzi.server.pojo.Task">
+        <id column="id" property="id"/>
+        <result column="applierWorkID" property="applierWorkID"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="createDate" property="createDate"/>
+        <result column="type" property="type"/>
+        <result column="state" property="state"/>
+        <result column="auditorWorkID" property="auditorWorkID"/>
+        <result column="expenditure" property="expenditure"/>
+        <result column="revenue" property="revenue"/>
+        <result column="auditResult" property="auditResult"/>
+        <result column="fAuditResult" property="fAuditResult"/>
+    </resultMap>
+
+    <resultMap id="TaskWithApplier" type="com.yuzi.server.pojo.Task" extends="BaseResultMap">
+        <collection property="applier" ofType="com.yuzi.server.pojo.Employee">
+            <id column="eid" property="id"/>
+            <result column="name" property="name"/>
+            <result column="workID" property="workID"/>
+        </collection>
+    </resultMap>
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id
+        , applierWorkID,title,content,createDate,type,state,auditorWorkID,expenditure,revenue,auditResult
+    </sql>
+
+    <select id="getTasksByPage" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM
+            `t_task` AS t
+        WHERE
+            t.applierWorkID = #{workID}
+        <if test="null != title and '' != title">
+            AND t.title LIKE CONCAT( '%', #{title}, '%' )
+        </if>
+        ORDER BY
+            t.createDate DESC
+    </select>
+
+    <select id="getTasksWithApplier" resultMap="TaskWithApplier">
+        SELECT
+            t.*,
+            e.NAME,
+            e.workID,
+            e.id AS eid
+        FROM
+            `t_task` AS t,
+            `t_employee` AS e
+        WHERE
+            t.applierWorkID = e.workID
+        AND t.auditorWorkID = #{workID}
+        <if test="null != state and '' != state">
+            AND t.state = #{state}
+        </if>
+        <if test="null != title and '' != title">
+            AND t.title LIKE CONCAT( '%', #{title}, '%' )
+        </if>
+        ORDER BY t.createDate desc
+    </select>
+
+    <select id="getFinTaskWithApplier" resultMap="TaskWithApplier">
+        SELECT
+        t.*,
+        e.NAME,
+        e.workID,
+        e.id AS eid
+        FROM
+        `t_task` AS t,
+        `t_employee` AS e
+        WHERE
+        t.applierWorkID = e.workID
+        AND t.type = 'PROGRAM'
+        AND t.state != 'AUDIT'
+        <if test="null != state and '' != state">
+            AND t.state = #{state}
+        </if>
+        <if test="null != title and '' != title">
+            AND t.title LIKE CONCAT( '%', #{title}, '%' )
+        </if>
+        ORDER BY t.createDate desc
+    </select>
+
+</mapper>
